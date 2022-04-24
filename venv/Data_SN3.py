@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 header = ['Index', 'acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z', 'time segment']
 src = 0       # Change
-folder_name = "C:/Users/brand/OneDrive/Desktop/Data/SN1"  # Change
+folder_name = "C:/Users/brand/OneDrive/Desktop/Data/SN3"  # Change
 recording_length = 900  # in seconds
 timestamp = 0
 start = time.time()
@@ -92,7 +92,7 @@ class State:
 # init
 states = []
 # connect to all mac addresses in arg
-d = MetaWear("C2:08:77:A0:48:FE")  # SN1: "C2:08:77:A0:48:FE" SN2: CC:08:77:A0:48:FE
+d = MetaWear("DD:67:4C:10:D8:A4")  # SN1: "C2:08:77:A0:48:FE" SN2:
 d.connect()
 print("Connected to " + d.address + " over " + ("USB" if d.usb.is_connected else "BLE"))
 states.append(State(d))

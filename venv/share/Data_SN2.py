@@ -10,11 +10,12 @@ from datetime import datetime
 from tqdm import tqdm
 
 
-header = ['acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z']
+header = ['Index', 'acc_x', 'acc_y', 'acc_z', 'gyro_x', 'gyro_y', 'gyro_z', 'time segment']
 src = 0       # Change
 folder_name = "C:/Users/brand/OneDrive/Desktop/Data/SN2"  # Change
 recording_length = 900  # in seconds
-
+timestamp = 0
+start = time.time()
 
 def get_current_time(time_option):
     if time_option == 1:
@@ -61,6 +62,7 @@ class State:
 
         self.acc_data = []
         self.gyro_data = []
+        self.time_segments = []
 
         self.accCallback = FnVoid_VoidP_DataP(self.acc_data_handler)
         self.gyroCallback = FnVoid_VoidP_DataP(self.gyro_data_handler)
@@ -73,6 +75,8 @@ class State:
         sdata = parse_value(data)
         pdata = [sdata.x * 9.8, sdata.y * 9.8, sdata.z * 9.8]
         self.acc_data.append(pdata)
+        timesegment = time.time() - start
+        self.time_segments.append(timesegment)
 
     # gyro callback function
     def gyro_data_handler(self, ctx, data):
@@ -88,7 +92,7 @@ class State:
 # init
 states = []
 # connect to all mac addresses in arg
-d = MetaWear("CE:D1:06:CE:D8:E6")  # SN1: "C2:08:77:A0:48:FE" SN2: "CE:D1:06:CE:D8:E6"
+d = MetaWear("CC:08:77:A0:48:FE")  # SN1: "C2:08:77:A0:48:FE" SN2: CC:08:77:A0:48:FE
 d.connect()
 print("Connected to " + d.address + " over " + ("USB" if d.usb.is_connected else "BLE"))
 states.append(State(d))
@@ -131,7 +135,9 @@ for s in states:
 
 pbar = tqdm(total=100)
 start = time.time()
-s2 = time.time();
+s2 = time.time()
+timestamp = 0
+
 while cap.isOpened():
     start_time = time.time()
     ret, frame = cap.read()
@@ -159,8 +165,8 @@ while cap.isOpened():
             else:
                 length = s.gyroSamples
             for i in range(length):
-                data.append([s.acc_data[i][0], s.acc_data[i][1], s.acc_data[i][2], s.gyro_data[i][0],
-                             s.gyro_data[i][1], s.gyro_data[i][2]])
+                data.append([i, s.acc_data[i][0], s.acc_data[i][1], s.acc_data[i][2], s.gyro_data[i][0],
+                             s.gyro_data[i][1], s.gyro_data[i][2], s.time_segments[i]])
             writer = csv.writer(f)
             writer.writerow(header)
             # for (i = 0; i < self.expected_samples -1; i++):
@@ -170,6 +176,7 @@ while cap.isOpened():
             s.gyro_data = []
             s.accSamples = 0
             s.gyroSamples = 0
+            s.time_segments = []
             data = []
             f.close()
 
@@ -219,4 +226,3 @@ print("Total Samples Received")
 for s in states:
     print("%s -> %d" % (s.device.address, s.samples))
     print("Exported Segments: " + str(video_counter))
-s
